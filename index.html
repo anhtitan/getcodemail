@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Code Mail</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f8f9fa, #e2eafc);
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .card-custom {
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 1rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+
+        .status-message {
+            margin-top: 15px;
+            font-size: 0.95rem;
+        }
+
+        .table th,
+        .table td {
+            vertical-align: middle;
+        }
+
+        .input-group.rounded-input {
+            border-radius: 0.5rem;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #6c757d;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body class="p-4">
+    <div class="container">
+        <div class="card card-custom animate__animated animate__fadeIn">
+            <h3 class="mb-4 text-primary fw-bold text-center">📨 Get Code Mail</h3>
+
+            <div class="input-group rounded-input shadow-sm">
+                <input type="text" id="email" class="form-control" placeholder="Enter email...">
+                <button class="btn btn-primary" onclick="getMail()">Get Mail</button>
+            </div>
+
+            <div class="table-responsive">
+                <table
+                    class="table table-bordered table-hover align-middle text-center bg-white animate__animated animate__fadeInUp"
+                    id="resultTable">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>Sender</th>
+                            <th>Subject</th>
+                            <th>Code</th>
+                            <th>Time</th>
+                            <th>From Email</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div id="status" class="status-message text-center"></div>
+        </div>
+    </div>
+
+    <script>
+        async function getMail() {
+            const email = document.getElementById('email').value.trim();
+            const statusDiv = document.getElementById('status');
+            if (!email) {
+                alert('Please enter an email.');
+                return;
+            }
+
+            const apiKey = 'UBO9mVWi9kfUXEz1xlN23Pjbra1lIcr';
+            const url = `https://mail1s.net/api/messages/${apiKey}/${email}`;
+
+            const tbody = document.querySelector('#resultTable tbody');
+            tbody.innerHTML = '';
+            statusDiv.innerHTML = '<div class="text-secondary animate__animated animate__fadeIn"><span class="loader"></span>Đang kiểm tra mail...</div>';
+
+            const startTime = performance.now();
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                const endTime = performance.now();
+                const seconds = ((endTime - startTime) / 1000).toFixed(2);
+
+                statusDiv.innerHTML = `<div class="text-success animate__animated animate__fadeIn">✅ Đã lấy dữ liệu thành công trong ${seconds} giây.</div>`;
+
+                if (data.status && data.messages.length > 0) {
+                    const sortedMessages = data.messages.sort((a, b) => new Date(b.receivedAt) - new Date(a.receivedAt));
+                    sortedMessages.forEach(msg => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+              <td>${msg.from}</td>
+              <td>${msg.subject}</td>
+              <td><strong>${msg.code || ''}</strong></td>
+              <td>${msg.receivedAt}</td>
+              <td>${msg.from_email}</td>
+            `;
+                        tbody.appendChild(row);
+                    });
+                } else {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="5">No messages found.</td>';
+                    tbody.appendChild(row);
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="text-danger animate__animated animate__fadeIn">❌ Lỗi khi truy vấn: ' + error.message + '</div>';
+            }
+        }
+    </script>
+</body>
+
+</html>
