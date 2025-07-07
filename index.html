@@ -58,6 +58,27 @@
                 transform: rotate(360deg);
             }
         }
+
+        #emailContentContainer {
+            background: #f8f9fa;
+            max-width: 100%;
+            margin: auto;
+            padding: 20px;
+            box-sizing: border-box;
+            word-wrap: break-word;
+        }
+
+        .modal-xl {
+            max-width: 90%;
+        }
+
+        .modal-content {
+            border-radius: 0.75rem;
+        }
+
+        .modal-body>div {
+            margin: 0 auto !important;
+        }
     </style>
 </head>
 
@@ -81,6 +102,7 @@
                             <th>Subject</th>
                             <th>Code</th>
                             <th>Time</th>
+                            <th>Detail</th>
                             <th>From Email</th>
                         </tr>
                     </thead>
@@ -92,7 +114,27 @@
         </div>
     </div>
 
+    <!-- Modal  -->
+    <div class="modal fade" id="contentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">📩 Nội dung Email</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="emailContentContainer" style="background:#f8f9fa;"></div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        function showContent(htmlContent) {
+            const container = document.getElementById('emailContentContainer');
+            container.innerHTML = htmlContent;
+            const modal = new bootstrap.Modal(document.getElementById('contentModal'));
+            modal.show();
+        }
+
         async function getMail() {
             const email = document.getElementById('email').value.trim();
             const statusDiv = document.getElementById('status');
@@ -123,17 +165,19 @@
                     sortedMessages.forEach(msg => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
-              <td>${msg.from}</td>
-              <td>${msg.subject}</td>
-              <td><strong>${msg.code || ''}</strong></td>
-              <td>${msg.receivedAt}</td>
-              <td>${msg.from_email}</td>
-            `;
+                         <td>${msg.from}</td>
+                         <td>${msg.subject}</td>
+                         <td><strong>${msg.code || ''}</strong></td>
+                         <td>${msg.receivedAt}</td>
+                         <td><button class="btn btn-sm btn-outline-secondary" onclick='showContent(${JSON.stringify(msg.content)})'>View</button></td>
+                         <td>${msg.from_email}</td>
+                         `;
                         tbody.appendChild(row);
                     });
+
                 } else {
                     const row = document.createElement('tr');
-                    row.innerHTML = '<td colspan="5">No messages found.</td>';
+                    row.innerHTML = '<td colspan="6">No messages found.</td>';
                     tbody.appendChild(row);
                 }
             } catch (error) {
